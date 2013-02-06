@@ -27,6 +27,320 @@
       toString         = ObjProto.toString,
       hasOwnProperty   = ObjProto.hasOwnProperty;
 
+/**************************************
+ *  All **ECMAScript 5** native function implementations that we hope to use
+ *  are added here if not supported (by older browsers):
+ *  Most of these are code from Mozilla.org
+ **************************************/
+// extendIfNull:
+// Just like _.extend, but only if not already defined (!=null)
+var extendIfNull = function(obj) {
+	var source,
+		args = slice.call(arguments,1),
+		len=args.length;
+	for(var i=0 ; i<len ; i++){
+		for ( var prop in (source = args[i])) {
+			if (obj[prop] == null) //THIS IS OUR ADDED CHECK
+				obj[prop] = source[prop];
+		}
+	}
+	return obj;
+};
+//For Array
+extendIfNull(ArrayProto, {
+	every : function(fn, context) {
+		"use strict";
+		var len = this.length >>> 0;
+		if (typeof fn != "function") {
+			throw new TypeError( fn + " is not a function" );
+		}
+		for (var i = 0; i < len; i++) {
+			if (i in this && !fn.call(context, this[i], i, this)) {
+				return false;
+			}
+		}
+		return true;
+	},
+	filter : function(fn, context) {
+		"use strict";
+		var len = this.length >>> 0;
+		if (typeof fn != "function") {
+			throw new TypeError( fn + " is not a function" );
+		}
+		var res = [], val;
+		for (var i = 0; i < len; i++) {
+			if (i in this) {
+				val = this[i]; // in case fn mutates this
+				if (fn.call(context,val, i, this)) {
+					res.push(val);
+				}
+			}
+		}
+		return res;
+	},
+	//TODO: note how different than .each(fn)
+	//TODO: perfTest binding context vs not.
+	forEach : function(fn, context) {
+		"use strict";
+        var len = this.length >>> 0; // Hack to convert O.length to a UInt32
+        if (typeof fn != "function") {
+			throw new TypeError( fn + " is not a function" );
+        }
+        for (var i = 0; i < len; i++) {
+            if (i in this) { //skip undefined values
+                fn.call(context, this[i], i, this);
+            }
+        }
+    },
+	indexOf : function (item, i ) {
+        "use strict";
+        var len = this.length >>> 0;
+		i = ~~i;  //fastest integer conversion
+		if(i < 0) i = Math.max( 0, len + i );
+        for (; i < len; i++) {
+            if (i in this && this[i] === item) {
+                return i;
+            }
+        }
+        return -1;
+    },
+	//TODO: better test cases for this one:
+	isArray : function (obj) {
+		return obj instanceof Array //super fast
+			|| toString.call(obj) == '[object Array]'; //works in another frame;
+	},
+	lastIndexOf : function(item, i) {
+		"use strict";
+		var len = Object(this).length >>> 0;
+
+		if(arguments.length > 1){
+			i = ~~i;
+			i = i < 0 ? len + i : Math.min(i, len - 1);
+		} else {
+			i = len-1;
+		}
+		for (; i >= 0; i--)
+		{
+			if (i in this && this[i] === item)
+				return i;
+		}
+		return -1;
+	},
+	map : function(fn, context) {
+		"use strict";
+        var len = this.length >>> 0;
+        if (typeof fn != "function") {
+			throw new TypeError( fn + " is not a function" );
+        }
+        var res = new Array(len);
+        for (var i = 0; i < len; i++) {
+            if (i in this) {
+                res[i] = fn.call(context, this[i], i, this);
+            }
+        }
+        return res;
+    },
+	reduce : function reduce(accumulator, curr){
+		"use strict";
+	    if (this == null) throw new TypeError("Object is null or undefined");
+	    if(typeof accumulator !== "function") // ES5 : "If IsCallable(callbackfn) is false, throw a TypeError exception."
+			throw new TypeError("First argument is not callable");
+	    var len = this.length >>> 0, i = 0;
+
+	    if(arguments.length < 2) {
+			if (len === 0) throw new TypeError("Array length is 0 and no second argument");
+			// start accumulating at first real element:
+			for(;;) {
+				if (i in this) {
+					var curr = this[i++]; //start accumulating here.
+					break;
+				}
+				if (++i >= len) {
+					throw new TypeError("Array contains no values and no initial (second) argument");
+				}
+			}
+	    }
+
+	    for (; i < len; i++) {
+	      if(i in this) curr = accumulator.call(undefined, curr, this[i], i, this);
+	    }
+
+	    return curr;
+	},
+	reduceRight : function(accumulator, curr) {
+		"use strict";
+	    if (this == null) throw new TypeError("Object is null or undefined");
+		if (typeof accumulator != "function") {
+			throw new TypeError("First argument is not callable");
+		}
+	    var len = this.length >>> 0, i = len - 1;
+
+	    if(arguments.length < 2) {
+			if (len == 0) throw new TypeError("Array length is 0 and no second argument");
+			// start accumulating at first real element:
+			for(;;) {
+				if (i in this) {
+					var curr = this[i--]; //start accumulating here.
+					break;
+				}
+				if (--i < 0) {
+					throw new TypeError("Array contains no values and no initial (second) argument");
+				}
+			}
+		}
+
+		for (; i >= 0; i--) {
+			if (i in this) curr = accumulator.call(undefined, curr, this[i], i, this);
+	    }
+
+	    return curr;
+	},
+	some : function(fn, context) {
+		"use strict";
+		var len = this.length >>> 0;
+		if (typeof fn != "function") {
+			throw new TypeError( fn + " is not a function" );
+		}
+		for (var i=0; i < len; i++) {
+			if (i in this && fn.call(context, this[i], i, this)) {
+				return true;
+			}
+		}
+		return false;
+	},
+
+	/*----------------------
+	 * Completely NEW array functions:
+	 -----------------------*/
+
+	//Soft version of indexOf (uses == instead of === | identity)
+	indexOfSoft : function (item, i) {
+		"use strict";
+		var len = this.length >>> 0;
+		i = ~~i;  //fastest integer conversion
+		if(i < 0) i = Math.max( 0, len + i );
+		for (; i < len; i++) {
+			if (i in this && this[i] == item) {
+				return i;
+			}
+		}
+		return -1;
+	},
+	//TODO: if value is a function, do we change this pointer???
+	fill: function(value,size){
+		if(size!=null) this.length = size;
+		else size = this.length;
+
+		if(typeof value == 'function')
+			for (var i = 0; i < size; i++) {
+				this[i] = value(this[i],i,this);
+			}
+		else
+			for (var i = 0; i < size; i++) {
+				this[i] = value;
+			}
+	},
+
+	/*
+	* Moves element at index up/down delta spaces
+	*
+	* delta of Infinity, or 'top','end' moves to end of array
+	* delta of -Infinity or 'bottom','front' moves to start of array...
+	* similar to moveTo(fromIndex,toIndex) method accept uses a delta
+	*/
+	move: function(index,delta){
+		//we will have Infinitiy = top, -Infinity = bottom
+		if(typeof delta == "string"){
+			if(['top','end','last'].is(delta))
+				delta = Infinity;
+			else if(['bottom','front','first'].is(delta)){
+				delta = -Infinity;
+			}
+			else
+				delta = parseInt(delta);
+		}
+
+		return this.moveTo(index,index + delta);
+	},
+	/*
+	* Moves element from one index in array to another:
+	*
+	* so if we have x = [a,b,c,d,e,f,g]
+	* x.moveTo(3,5) results in [a,b,c,e,f,d,g]
+	*
+	* NOTE: careful when moving to a higher index ...
+	* 	don't expect [a,b,c,e,d,f,g] in the above example
+	* 	the toIndex will be the final index.
+	*
+	* 	returns 'true' if anything moved, otherwise 'false'
+	*/
+	moveTo: function(fromIndex,toIndex){
+		if (fromIndex < 0 || fromIndex >= this.length || isNaN(toIndex)) {
+			return false;
+		}
+
+		var item = this[fromIndex];
+		this.splice(fromIndex,1);
+
+		if(toIndex<0) toIndex = 0;
+		else if(toIndex > this.length) toIndex = this.length;
+
+		this.splice(toIndex,0,item);
+		return (fromIndex != toIndex);
+	}
+});
+
+// For Function:
+if(!FuncProto.bind)	FuncProto.bind = function (context) {
+	if (typeof this != "function") {
+		// closest thing possible to the ECMAScript 5 internal IsCallable function
+		throw new TypeError( this + " is not a function" );
+	}
+	var bound, func = this, args = slice.call(arguments, 1);
+	return bound = function() {
+		if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+		ctor.prototype = func.prototype;
+		var self = new ctor;
+		var result = func.apply(self, args.concat(slice.call(arguments)));
+		if (Object(result) === result) return result;
+		return self;
+	};
+};
+
+// For Object:
+if (!Object.keys) Object.keys = (function(){
+	var hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+	dontEnums = [
+	  'toString',
+	  'toLocaleString',
+	  'valueOf',
+	  'hasOwnProperty',
+	  'isPrototypeOf',
+	  'propertyIsEnumerable',
+	  'constructor'
+	],
+	dontEnumsLength = dontEnums.length;
+
+	return function (obj) {
+		//TODO: speed test object compare:
+		//if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null)
+
+		if (obj !== Object(obj))
+			throw new TypeError('Object.keys called on a non-object');
+		var result = [];
+
+		for (var prop in obj) if (hasOwnProperty.call(obj,prop)) result.push(prop);
+
+		if (hasDontEnumBug) {
+			for (var i=0; i < dontEnumsLength; i++) {
+				if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i]);
+			}
+		}
+
+		return result;
+	}
+})();
+
   // All **ECMAScript 5** native function implementations that we hope to use
   // are declared here.
   var
@@ -65,6 +379,62 @@
 
   // Current version.
   _.VERSION = '1.4.4-a';
+
+/************************
+ * A few important functions we need defined first:
+ ************************/
+var
+//jQuery is arraylike but returns false to $.isArray()... also collections:
+//we can use jQuery like an array in most cases:
+//Although strings really are arraylike, we will return false for a string, assuming we don't want array of it's characters.
+//TODO: make tests for these:
+isArrayLike = function(obj){
+	//TODO: test obj.length == +obj.length??
+	return nativeIsArray(obj) ||
+	(obj.length === +obj.length &&
+		typeof obj != string && toString.call(obj)!='[object String]');
+},
+/* makeInArgsFn():
+*
+* returns: a function fn(val) which checks if val is in the passed arguments:
+* arguments can be any of the following:
+* ([val1,val2,val3,val4])
+* (val1,val2,val3,val4)
+* (value)
+*
+* This should make it good to use and extend Array.filter() and other functions
+* 	that normally take only a function.
+* NOTE: Array must have an indexOf function
+* TODO: we should move functions to _.fn
+*/
+makeInArgsFn = function(arg){
+	if(arguments.length!=1){
+		arg = _.toArray(arguments);
+	}else if(!isArrayLike(arg)){
+		return function(v){
+			return v==arg;
+		};
+	}
+	return function(val){
+		return nativeIndexOf.call(arg,val)!=-1;
+	};
+},
+negate = function(fn) {
+	return function() {
+		return !fn.apply(this, arguments)
+	};
+};
+
+/**************************
+ * more Completely NEW array functions:
+ * (more complicated, requires '_' to exist):
+ **************************/
+extendIfNull(ArrayProto,{
+	remove: function(fn, context){
+		if(!_.isFunction(fn)){ fn = makeInArgsFn.apply(null,arguments); context = null; }
+		return ArrayProto.filter.call(this,negate(fn),context);
+	}
+});
 
   // Collection Functions
   // --------------------

@@ -3,6 +3,8 @@ $(document).ready(function() {
   module("Collections");
 
   test("each", function() {
+    expect(8); //Assert that _each loops over all elements
+
     _.each([1, 2, 3], function(num, i) {
       equal(num, i + 1, 'each iterators provide value and iteration count');
     });

@@ -442,21 +442,33 @@ extendIfNull(ArrayProto,{
   // The cornerstone, an `each` implementation, aka `forEach`.
   // Handles objects with the built-in `forEach`, arrays, and raw objects.
   // Delegates to **ECMAScript 5**'s native `forEach` if available.
+  // FIXME: can we assume if obj.length is a number it's safe to run nativeForEach?
+  // This would allow much faster optimizaion and work even for strings! (run through each character)
+  // TODO: we need some test cases that would test the above.
+  // TODO: test with jQuery as alternative object
+  // TODO: see about adding forEach to Object.prototype
+  // TODO: performance test pulling out obj.length to variable...
+  // NOTE: now returns 'obj' to be more chainable
   var each = _.each = _.forEach = function(obj, iterator, context) {
-    if (obj == null) return;
-    if (nativeForEach && obj.forEach === nativeForEach) {
+    if (obj == null) return obj;
+    if (obj.forEach === nativeForEach) {
       obj.forEach(iterator, context);
-    } else if (obj.length === +obj.length) {
-      for (var i = 0, l = obj.length; i < l; i++) {
-        if (iterator.call(context, obj[i], i, obj) === breaker) return;
-      }
+      return obj;
+    }
+    var len = obj.length;
+    if (len === +len) {
+      nativeForEach.call(obj, iterator, context);
+      //for (var i = 0; i < len; i++) {
+      //  if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return obj;
+      //}
     } else {
       for (var key in obj) {
-        if (_.has(obj, key)) {
-          if (iterator.call(context, obj[key], key, obj) === breaker) return;
+        if (hasOwnProperty.call(obj, key)) {
+          if (iterator.call(context, obj[key], key, obj) === breaker) return obj;
         }
       }
     }
+    return obj;
   };
 
   // Return the results of applying the iterator to each element.

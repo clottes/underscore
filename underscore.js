@@ -384,15 +384,23 @@ if (!Object.keys) Object.keys = (function(){
  * A few important functions we need defined first:
  ************************/
 var
-//jQuery is arraylike but returns false to $.isArray()... also collections:
+// What isArrayLike:
+//   - .length = number (property);
+//       should give length of collection, also 'length' shouldn't be own property (though are skipping this test)
+//   - .indexOf = function;
+//   - srings will return 'false' (though they are arraylike, assume we don't want char array)
+//       if so just use .split('');
+// why? jQuery is arraylike but returns false to isArray()... also other collections:
 //we can use jQuery like an array in most cases:
 //Although strings really are arraylike, we will return false for a string, assuming we don't want array of it's characters.
 //TODO: make tests for these:
+//TODO: can we optimize this any more?
 isArrayLike = function(obj){
 	//TODO: test obj.length == +obj.length??
 	return nativeIsArray(obj) ||
 	(obj.length === +obj.length &&
-		typeof obj != string && toString.call(obj)!='[object String]');
+		typeof obj.indexOf == 'function' &&
+		typeof obj != 'string' && toString.call(obj)!='[object String]');
 },
 /* makeInArgsFn():
 *

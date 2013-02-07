@@ -33,6 +33,45 @@ $(document).ready(function() {
     equal(answers, 0, 'handles a null properly');
   });
 
+  test("till", function() {
+    expect(8);  //Assert that _.till doesn't break out of loops skipping tests
+
+    //_.till should handle same tests as each,
+    //but also must test returning false breaks out,
+    //and {},true,{no-return},null,0 continues loop
+
+    _.till([1, 2, 3], function(num, i) {
+      equal(num, i + 1, 'till iterators provide value and iteration count, return "null" continues loop');
+      return null;
+    });
+
+    var answers = [];
+    _.till([1, 2, 3], function(num){
+      answers.push(num * this.multiplier);
+      return {};
+    }, {multiplier : 5});
+    equal(answers.join(', '), '5, 10, 15', 'context object property accessed, return non-null object continues loop');
+
+    answers = [];
+    _.until([1, 2, 3, 4], function(num){ answers.push(num); return num<3; });
+    equal(answers.join(', '), '1, 2, 3', 'aliased as "until", return \'false\' stopped loop');
+
+    answers = [];
+    var obj = {one : 1, two : 2, three : 3};
+    obj.constructor.prototype.four = 4;
+    _.till(obj, function(value, key){ answers.push(key); return 0;});
+    equal(answers.join(", "), 'one, two, three', 'iterating over objects works, and ignores the object prototype., return "0" continues loop');
+    delete obj.constructor.prototype.four;
+
+    var answer = null;
+    _.till([1, 2, 3], function(num, index, arr){ if (_.include(arr, num)) answer = true; });
+    ok(answer, 'can reference the original collection from inside the iterator');
+
+    answers = 0;
+    _.till(null, function(){ ++answers; });
+    equal(answers, 0, 'handles a null properly');
+  });
+
   test('map', function() {
     var doubled = _.map([1, 2, 3], function(num){ return num * 2; });
     equal(doubled.join(', '), '2, 4, 6', 'doubled numbers');

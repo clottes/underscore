@@ -471,6 +471,31 @@ extendIfNull(ArrayProto,{
     return obj;
   };
 
+/* Like each function garunteed to break out on iterator returning false,
+ *	nativeForEach if called doesn't have this rule
+ *	(doing this when expected should be faster)
+ * NOTE: pass used internally, if(pass==true) returns true/false
+	false if broke out of iterations
+	otherwise it returns the 'obj' for better chainability:
+	TODO: do we do the opposite function (while false?)
+		//user could do: while(obj,negate(iterator))
+	TODO: test returning nothing (make sure that doesn't end loop)... maybe do === false
+*/
+var till = _.till = _.until = function(obj, iterator, context, pass) {
+	if (obj == null) return pass || obj;
+	var len = obj.length;
+	if (len === +len) {
+		for (var i = 0; i < len; i++) {
+			if(i in obj && iterator.call(context, obj[i], i, obj) === false) return !pass && obj;
+		}
+	} else {
+		for (var key in obj) {
+			if (hasOwnProperty.call(obj, key) && iterator.call(context, obj[key], key, obj) === false) return !pass && obj;
+		}
+	}
+	return pass || obj;
+};
+
   // Return the results of applying the iterator to each element.
   // Delegates to **ECMAScript 5**'s native `map` if available.
   _.map = _.collect = function(obj, iterator, context) {

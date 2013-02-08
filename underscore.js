@@ -581,7 +581,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     return memo;
   };
 
-  // Return the first value which passes a truth test. Aliased as `detect`.
+  // Return the first key found where value passes a truth test.
   //TODO: this one is much faster, maybe use it:
   //TODO: expose this function to world
   //TODO: use nativeIndexOf??

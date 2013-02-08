@@ -740,12 +740,10 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Shuffle an array.
   _.shuffle = function(obj) {
-    var rand;
-    var index = 0;
-    var shuffled = [];
-    each(obj, function(value) {
-      rand = _.random(index++);
-      shuffled[index - 1] = shuffled[rand];
+    var shuffled = [], rand;
+    each(obj, function(value,index) {
+      rand = Math.floor(Math.random() * (index + 1));
+      shuffled[index] = shuffled[rand];
       shuffled[rand] = value;
     });
     return shuffled;

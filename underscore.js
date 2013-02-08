@@ -1233,18 +1233,21 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Return a copy of the object only containing the whitelisted properties.
   _.pick = function(obj) {
-    var copy = {};
-    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
-    each(keys, function(key) {
+    var key,
+    copy = {},
+    props = concat.apply(ArrayProto, slice.call(arguments, 1));
+    i = props.length;
+    while(i-->0){
+      key = props[i]
       if (key in obj) copy[key] = obj[key];
-    });
+    };
     return copy;
   };
 
    // Return a copy of the object without the blacklisted properties.
   _.omit = function(obj) {
-    var copy = {};
-    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    var copy = {},
+    keys = concat.apply(ArrayProto, slice.call(arguments, 1));
     for (var key in obj) {
       if (!_.contains(keys, key)) copy[key] = obj[key];
     }

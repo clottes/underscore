@@ -1231,6 +1231,8 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     return obj;
   };
 
+  _.extendIfNull = extendIfNull;
+
   // Return a copy of the object only containing the whitelisted properties.
   _.pick = function(obj) {
     var key,

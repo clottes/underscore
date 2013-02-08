@@ -566,7 +566,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     }
     var length = obj.length;
     if (length !== +length) {
-      var keys = _.keys(obj);
+      var keys = nativeKeys(obj);
       length = keys.length;
     }
     each(obj, function(value, index, list) {
@@ -805,7 +805,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Return the number of elements in an object.
   _.size = function(obj) {
     if (obj == null) return 0;
-    return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
+    return (obj.length === +obj.length) ? obj.length : nativeKeys(obj).length;
   };
 
   // Array Functions
@@ -1493,8 +1493,8 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Regexes containing the keys and values listed immediately above.
   var entityRegexes = {
-    escape:   new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
-    unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
+    escape:   new RegExp('[' + nativeKeys(entityMap.escape).join('') + ']', 'g'),
+    unescape: new RegExp('(' + nativeKeys(entityMap.unescape).join('|') + ')', 'g')
   };
 
   // Functions for escaping and unescaping strings to/from HTML interpolation.

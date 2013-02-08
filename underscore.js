@@ -747,6 +747,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     return result.value;
   };
 
+  // TODO: test on sparse arrays & test on objects:
   // Shuffle an array.
   _.shuffle = function(obj) {
     var shuffled = [], rand;

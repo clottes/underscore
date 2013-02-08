@@ -1163,8 +1163,9 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.compose = function() {
     var funcs = arguments;
     return function() {
-      var args = arguments;
-      for (var i = funcs.length - 1; i >= 0; i--) {
+      var args = arguments,
+      i = funcs.length;
+      while(i-->0) {
         args = [funcs[i].apply(this, args)];
       }
       return args[0];

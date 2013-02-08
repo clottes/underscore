@@ -540,7 +540,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
     if (obj.reduce === nativeReduce) {
-      if (context) iterator = _.bind(iterator, context);
+      if (context) iterator = iterator.bind(context);
       return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
     }
     each(obj, function(value, index, list) {
@@ -561,7 +561,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
     if (obj.reduceRight === nativeReduceRight) {
-      if (context) iterator = _.bind(iterator, context);
+      if (context) iterator = iterator.bind(context);
       return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
     }
     var length = obj.length;
@@ -1009,11 +1009,16 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
   // available.
   _.bind = function(func, context) {
-    if (func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (typeof func != "function"){
+        throw new TypeError( func + " is not a function" );
+    }
+    return nativeBind.apply(func, slice.call(arguments, 1));
+/*
     var args = slice.call(arguments, 2);
     return function() {
       return func.apply(context, args.concat(slice.call(arguments)));
     };
+*/
   };
 
   // Partially apply a function by creating a version that has had some of its
@@ -1027,6 +1032,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Bind all of an object's methods to that object. Useful for ensuring that
   // all callbacks defined on an object belong to it.
+  // TODO: should we remove each() ... and use native as well??
   _.bindAll = function(obj) {
     var funcs = slice.call(arguments, 1);
     if (funcs.length === 0) funcs = _.functions(obj);

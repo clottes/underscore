@@ -37,6 +37,16 @@ $(document).ready(function() {
     ok(_.some(array, function() {
       return _.random(Number.MAX_VALUE) > 0;
     }), "should produce a random number when passed `Number.MAX_VALUE`");
+
+    //setup for testing edge cases where Math.random()=1 && Math.random()=0;
+    var _orig_random = Math.random;
+
+    Math.random = function(){ return 1; }
+    ok(_.random(1,5)<=5,"Math.random()=1 doesn't produce value greater than max");
+    Math.random = function(){ return 0; }
+    ok(_.random(1,5)>=1,"Math.random()=0 doesn't produce value smaller than min");
+
+    Math.random = _orig_random; //return to original state
   });
 
   test("uniqueId", function() {

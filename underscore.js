@@ -104,11 +104,6 @@ extendIfNull(ArrayProto, {
         }
         return -1;
     },
-	//TODO: better test cases for this one:
-	isArray : function (obj) {
-		return obj instanceof Array //super fast
-			|| toString.call(obj) == '[object Array]'; //works in another frame;
-	},
 	lastIndexOf : function(item, i) {
 		"use strict";
 		var len = Object(this).length >>> 0;
@@ -289,6 +284,12 @@ extendIfNull(ArrayProto, {
 		return (fromIndex != toIndex);
 	}
 });
+//TODO: better test cases for this one:
+//TODO: test to see if we can add static method to Array (instead of just it's prototype)
+if(!Array.isArray) Array.isArray = function (obj) {
+	return obj instanceof Array //super fast
+		|| toString.call(obj) == '[object Array]'; //works in another frame;
+};
 
 // For Function:
 if(!FuncProto.bind)	FuncProto.bind = function (context) {
@@ -672,7 +673,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Can't optimize arrays of integers longer than 65,535 elements.
   // See: https://bugs.webkit.org/show_bug.cgi?id=80797
   _.max = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+    if (!iterator && nativeIsArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
       return Math.max.apply(Math, obj);
     }
     if (!iterator && _.isEmpty(obj)) return -Infinity;
@@ -686,7 +687,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Return the minimum element (or element-based computation).
   _.min = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+    if (!iterator && nativeIsArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
       return Math.min.apply(Math, obj);
     }
     if (!iterator && _.isEmpty(obj)) return Infinity;
@@ -781,7 +782,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Safely convert anything iterable into a real, live array.
   _.toArray = function(obj) {
     if (!obj) return [];
-    if (_.isArray(obj)) return slice.call(obj);
+    if (nativeIsArray(obj)) return slice.call(obj);
     if (obj.length === +obj.length) return _.map(obj, _.identity);
     return _.values(obj);
   };
@@ -838,7 +839,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Internal implementation of a recursive `flatten` function.
   var flatten = function(input, shallow, output) {
     each(input, function(value) {
-      if (_.isArray(value)) {
+      if (nativeIsArray(value)) {
         shallow ? push.apply(output, value) : flatten(value, shallow, output);
       } else {
         output.push(value);
@@ -1225,7 +1226,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Create a (shallow-cloned) duplicate of an object.
   _.clone = function(obj) {
     if (!_.isObject(obj)) return obj;
-    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+    return nativeIsArray(obj) ? obj.slice() : _.extend({}, obj);
   };
 
   // Invokes interceptor with the obj, and then returns obj.
@@ -1336,7 +1337,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // An "empty" object has no enumerable own-properties.
   _.isEmpty = function(obj) {
     if (obj == null) return true;
-    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+    if (nativeIsArray(obj) || _.isString(obj)) return obj.length === 0;
     for (var key in obj) if (_.has(obj, key)) return false;
     return true;
   };
@@ -1348,9 +1349,9 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Is a given value an array?
   // Delegates to ECMA5's native Array.isArray
-  _.isArray = nativeIsArray || function(obj) {
-    return toString.call(obj) == '[object Array]';
-  };
+  _.isArray = nativeIsArray;
+
+  _.isArrayLike = isArrayLike;
 
   // Is a given variable an object?
   _.isObject = function(obj) {

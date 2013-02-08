@@ -658,14 +658,16 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Delegates to **ECMAScript 5**'s native `some` if available.
   // Aliased as `any`.
   var any = _.some = _.any = function(obj, iterator, context) {
-    iterator || (iterator = _.identity);
     var result = false;
-    if (obj == null) return result;
-    if (obj.some === nativeSome) return obj.some(iterator, context);
-    each(obj, function(value, index, list) {
+    if (obj == null) return false;
+    if (obj.some === nativeSome) return obj.some(iterator || _.identity, context);
+	return findKey(obj, iterator, context) !== undefined;
+/*
+	each(obj, function(value, index, list) {
       if (result || (result = iterator.call(context, value, index, list))) return breaker;
     });
     return !!result;
+*/
   };
 
   // Determine if the array or object contains a given value (using `===`).

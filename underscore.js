@@ -1448,6 +1448,9 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Is the given value `NaN`? (NaN is the only number which does not equal itself).
   _.isNaN = function(obj) {
     return _.isNumber(obj) && obj != +obj;
+    // `NaN` is the only value for which `===` is not reflexive.
+    //return obj !== obj;
+    //TODO: optimize / speed check
   };
 
   // Is a given value a boolean?

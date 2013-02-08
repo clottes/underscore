@@ -582,8 +582,32 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   };
 
   // Return the first value which passes a truth test. Aliased as `detect`.
+  //TODO: this one is much faster, maybe use it:
+  //TODO: expose this function to world
+  //TODO: use nativeIndexOf??
+  var findKey = _.findKey = function(obj, iterator, context) {
+    if (obj == null) return undefined;
+    iterator || (iterator = _.identity);
+
+	var len = obj.length;
+	if (len === +len) {
+	  for (var i = 0; i < len; i++) {
+		if(i in obj && iterator.call(context, obj[i], i, obj)) return i;
+	  }
+	} else {
+	  for (var key in obj) {
+		if (hasOwnProperty.call(obj, key) && iterator.call(context, obj[key], key, obj)) return key;
+	  }
+	}
+	return undefined;
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  // TODO: test when findKey returns undefined...?
   _.find = _.detect = function(obj, iterator, context) {
-    var result;
+    if (obj == null) return undefined;
+    return obj[findKey(obj, iterator, context)];
+/*    var result;
     any(obj, function(value, index, list) {
       if (iterator.call(context, value, index, list)) {
         result = value;
@@ -591,6 +615,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
       }
     });
     return result;
+*/
   };
 
   // Return all the elements that pass a truth test.

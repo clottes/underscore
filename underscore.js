@@ -751,7 +751,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.shuffle = function(obj) {
     var shuffled = [], rand;
     each(obj, function(value,index) {
-      rand = Math.floor(Math.random() * (index + 1));
+      rand = _.random(index);
       shuffled[index] = shuffled[rand];
       shuffled[rand] = value;
     });

@@ -643,13 +643,15 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Aliased as `all`.
   _.every = _.all = function(obj, iterator, context) {
     iterator || (iterator = _.identity);
-    var result = true;
-    if (obj == null) return result;
+    if (obj == null) return true;
     if (obj.every === nativeEvery) return obj.every(iterator, context);
+    return till(obj, interator, context, true);
+/*
     each(obj, function(value, index, list) {
       if (!(result = result && iterator.call(context, value, index, list))) return breaker;
     });
     return !!result;
+*/
   };
 
   // Determine if at least one element in the object matches a truth test.
@@ -671,9 +673,14 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.contains = _.include = function(obj, target) {
     if (obj == null) return false;
     if (obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    return !till(obj,function(value){
+      return value !== target;
+    }, undefined, true);
+/*
     return any(obj, function(value) {
       return value === target;
     });
+*/
   };
 
   // Invoke a method (with arguments) on every item in a collection.

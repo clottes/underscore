@@ -926,6 +926,30 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Produce an array that contains every item shared between all the
   // passed-in arrays.
+  // TODO: test against Non-array type values to start
+  // TODO:  think about also having next values as non-array for test as well?
+  // TODO: try with flatten? ,,, try uniq.
+  // TODO: revisit and optomize!
+  // TODO: Test intersection of jQuery type objects...
+  _.intersection = function(array) {
+	if(!isArrayLike(array)) array = _.toArray(array);
+	var val, i = -1, len = array.length,
+	rest = slice.call(arguments, 1),
+	result = [];
+	while (++i < len) {
+		val = array[i];
+		if (result.indexOf(val) != -1) return;
+		if (till(rest, function(other){
+			//can we assume each argument is array, or should we check?
+			//TODO: should we use arraylike???
+			//if(isArrayLike(other)) nativeIndexOf.call..
+			return _.indexOf(other,val) != -1;
+		},undefined,true)) result.push(val);
+	}
+	return result;
+  };
+
+/*
   _.intersection = function(array) {
     var rest = slice.call(arguments, 1);
     return _.filter(_.uniq(array), function(item) {
@@ -934,13 +958,26 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
       });
     });
   };
+*/
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+	if(!isArrayLike(array)) array = _.toArray(array);
+	var rest = concat.apply(ArrayProto,slice.call(arguments, 1)),
+	result = [],
+	i = -1, len = array.length;
+	while(++i < len){
+		if(rest.indexOf(array[i])==-1) result.push(array[i]);
+	}
+	return result;
+  };
+/*
+  _.difference = function(array) {
     var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
     return _.filter(array, function(value){ return !_.contains(rest, value); });
   };
+*/
 
   // Zip together multiple lists into a single array -- elements that share
   // an index go together.

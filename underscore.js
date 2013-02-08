@@ -1552,7 +1552,8 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
       max = min;
       min = 0;
     }
-    return min + Math.floor(Math.random() * (max - min + 1));
+    var r = min + Math.floor(Math.random() * (max - min + 1));
+    return r > max ? max : r; //check for limit case Math.random()=1.0
   };
 
   // List of HTML entities for escaping.

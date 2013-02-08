@@ -657,7 +657,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Determine if at least one element in the object matches a truth test.
   // Delegates to **ECMAScript 5**'s native `some` if available.
   // Aliased as `any`.
-  var any = _.some = _.any = function(obj, iterator, context) {
+  _.some = _.any = function(obj, iterator, context) {
     var result = false;
     if (obj == null) return false;
     if (obj.some === nativeSome) return obj.some(iterator || _.identity, context);

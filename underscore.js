@@ -466,10 +466,10 @@ extendIfNull(ArrayProto,{
     }
     var len = obj.length;
     if (len === +len) {
-      nativeForEach.call(obj, iterator, context);
-      //for (var i = 0; i < len; i++) {
-      //  if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return obj;
-      //}
+      //nativeForEach.call(obj, iterator, context);
+      for (var i = 0; i < len; i++) {
+        if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return obj;
+      }
     } else {
       for (var key in obj) {
         if (hasOwnProperty.call(obj, key)) {
@@ -510,7 +510,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.map = _.collect = function(obj, iterator, context) {
     var results = [];
     if (obj == null) return results;
-    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+    if (obj.map === nativeMap) return obj.map(iterator, context);
     each(obj, function(value, index, list) {
       results[results.length] = iterator.call(context, value, index, list);
     });
@@ -524,7 +524,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
-    if (nativeReduce && obj.reduce === nativeReduce) {
+    if (obj.reduce === nativeReduce) {
       if (context) iterator = _.bind(iterator, context);
       return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
     }
@@ -545,7 +545,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
-    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+    if (obj.reduceRight === nativeReduceRight) {
       if (context) iterator = _.bind(iterator, context);
       return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
     }
@@ -585,7 +585,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.filter = _.select = function(obj, iterator, context) {
     var results = [];
     if (obj == null) return results;
-    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
+    if (obj.filter === nativeFilter) return obj.filter(iterator, context);
     each(obj, function(value, index, list) {
       if (iterator.call(context, value, index, list)) results[results.length] = value;
     });
@@ -606,7 +606,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     iterator || (iterator = _.identity);
     var result = true;
     if (obj == null) return result;
-    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
+    if (obj.every === nativeEvery) return obj.every(iterator, context);
     each(obj, function(value, index, list) {
       if (!(result = result && iterator.call(context, value, index, list))) return breaker;
     });
@@ -620,7 +620,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     iterator || (iterator = _.identity);
     var result = false;
     if (obj == null) return result;
-    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
+    if (obj.some === nativeSome) return obj.some(iterator, context);
     each(obj, function(value, index, list) {
       if (result || (result = iterator.call(context, value, index, list))) return breaker;
     });
@@ -631,7 +631,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Aliased as `include`.
   _.contains = _.include = function(obj, target) {
     if (obj == null) return false;
-    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    if (obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
     return any(obj, function(value) {
       return value === target;
     });
@@ -752,7 +752,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // to group by, or a function that returns the criterion.
   _.groupBy = function(obj, value, context) {
     return group(obj, value, context, function(result, key, value) {
-      (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
+      (hasOwnProperty.call(result, key) ? result[key] : (result[key] = [])).push(value);
     });
   };
 
@@ -761,7 +761,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // criterion.
   _.countBy = function(obj, value, context) {
     return group(obj, value, context, function(result, key) {
-      if (!_.has(result, key)) result[key] = 0;
+      if (!hasOwnProperty.call(result, key)) result[key] = 0;
       result[key]++;
     });
   };
@@ -948,7 +948,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
         return array[i] === item ? i : -1;
       }
     }
-    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
+    if (array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
     for (; i < l; i++) if (array[i] === item) return i;
     return -1;
   };
@@ -957,7 +957,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.lastIndexOf = function(array, item, from) {
     if (array == null) return -1;
     var hasIndex = from != null;
-    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
+    if (array.lastIndexOf === nativeLastIndexOf) {
       return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
     }
     var i = (hasIndex ? from : array.length);
@@ -994,7 +994,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
   // available.
   _.bind = function(func, context) {
-    if (func.bind === nativeBind && nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
     var args = slice.call(arguments, 2);
     return function() {
       return func.apply(context, args.concat(slice.call(arguments)));
@@ -1025,7 +1025,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     hasher || (hasher = _.identity);
     return function() {
       var key = hasher.apply(this, arguments);
-      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+      return hasOwnProperty.call(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
     };
   };
 
@@ -1141,31 +1141,26 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Retrieve the names of an object's properties.
   // Delegates to **ECMAScript 5**'s native `Object.keys`
-  _.keys = nativeKeys || function(obj) {
-    if (obj !== Object(obj)) throw new TypeError('Invalid object');
-    var keys = [];
-    for (var key in obj) if (_.has(obj, key)) keys[keys.length] = key;
-    return keys;
-  };
+  _.keys = nativeKeys;
 
   // Retrieve the values of an object's properties.
   _.values = function(obj) {
     var values = [];
-    for (var key in obj) if (_.has(obj, key)) values.push(obj[key]);
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) values.push(obj[key]);
     return values;
   };
 
   // Convert an object into a list of `[key, value]` pairs.
   _.pairs = function(obj) {
     var pairs = [];
-    for (var key in obj) if (_.has(obj, key)) pairs.push([key, obj[key]]);
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) pairs.push([key, obj[key]]);
     return pairs;
   };
 
   // Invert the keys and values of an object. The values must be serializable.
   _.invert = function(obj) {
     var result = {};
-    for (var key in obj) if (_.has(obj, key)) result[obj[key]] = key;
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) result[obj[key]] = key;
     return result;
   };
 
@@ -1307,17 +1302,17 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
       }
       // Deep compare objects.
       for (var key in a) {
-        if (_.has(a, key)) {
+        if (hasOwnProperty.call(a, key)) {
           // Count the expected number of properties.
           size++;
           // Deep compare each member.
-          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+          if (!(result = hasOwnProperty.call(b, key) && eq(a[key], b[key], aStack, bStack))) break;
         }
       }
       // Ensure that both objects contain the same number of properties.
       if (result) {
         for (key in b) {
-          if (_.has(b, key) && !(size--)) break;
+          if (hasOwnProperty.call(b, key) && !(size--)) break;
         }
         result = !size;
       }
@@ -1338,7 +1333,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.isEmpty = function(obj) {
     if (obj == null) return true;
     if (nativeIsArray(obj) || _.isString(obj)) return obj.length === 0;
-    for (var key in obj) if (_.has(obj, key)) return false;
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) return false;
     return true;
   };
 
@@ -1370,7 +1365,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // there isn't any inspectable "Arguments" type.
   if (!_.isArguments(arguments)) {
     _.isArguments = function(obj) {
-      return !!(obj && _.has(obj, 'callee'));
+      return !!(obj && hasOwnProperty.call(obj, 'callee'));
     };
   }
 

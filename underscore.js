@@ -403,6 +403,7 @@ isArrayLike = function(obj){
 		typeof obj.indexOf == 'function' &&
 		typeof obj != 'string' && toString.call(obj)!='[object String]');
 },
+
 /* makeInArgsFn():
 *
 * returns: a function fn(val) which checks if val is in the passed arguments:
@@ -507,13 +508,27 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
 
   // Return the results of applying the iterator to each element.
   // Delegates to **ECMAScript 5**'s native `map` if available.
-  _.map = _.collect = function(obj, iterator, context) {
-    var results = [];
-    if (obj == null) return results;
+  var map = _.map = _.collect = function(obj, iterator, context) {
+    if (obj == null) return [];
     if (obj.map === nativeMap) return obj.map(iterator, context);
+
+    var results = [];
+    var len = obj.length;
+    if (len === +len) {
+      for (var i = 0; i < len; i++) {
+        if (i in obj) results.push(iterator.call(context,obj[i], i, obj));
+      }
+    } else {
+      for (var key in obj) {
+        //TODO: check if we need to skip key = "prototype"
+        if (hasOwnProperty.call(obj, key)) results.push(iterator.call(context,obj[key], key, obj));
+      }
+    }
+/*
     each(obj, function(value, index, list) {
       results[results.length] = iterator.call(context, value, index, list);
     });
+*/
     return results;
   };
 
@@ -641,14 +656,14 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.invoke = function(obj, method) {
     var args = slice.call(arguments, 2);
     var isFunc = _.isFunction(method);
-    return _.map(obj, function(value) {
+    return map(obj, function(value) {
       return (isFunc ? method : value[method]).apply(value, args);
     });
   };
 
   // Convenience version of a common use case of `map`: fetching a property.
   _.pluck = function(obj, key) {
-    return _.map(obj, function(value){ return value[key]; });
+    return map(obj, function(value){ return value[key]; });
   };
 
   // Convenience version of a common use case of `filter`: selecting only objects
@@ -720,7 +735,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   // Sort the object's values by a criterion produced by an iterator.
   _.sortBy = function(obj, value, context) {
     var iterator = lookupIterator(value);
-    return _.pluck(_.map(obj, function(value, index, list) {
+    return _.pluck(map(obj, function(value, index, list) {
       return {
         value : value,
         index : index,
@@ -783,7 +798,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   _.toArray = function(obj) {
     if (!obj) return [];
     if (nativeIsArray(obj)) return slice.call(obj);
-    if (obj.length === +obj.length) return _.map(obj, _.identity);
+    if (obj.length === +obj.length) return map(obj, _.identity);
     return _.values(obj);
   };
 
@@ -867,7 +882,7 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
       iterator = isSorted;
       isSorted = false;
     }
-    var initial = iterator ? _.map(array, iterator, context) : array;
+    var initial = iterator ? map(array, iterator, context) : array;
     var results = [];
     var seen = [];
     each(initial, function(value, index) {

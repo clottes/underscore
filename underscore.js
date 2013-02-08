@@ -489,7 +489,6 @@ extendIfNull(ArrayProto,{
 	otherwise it returns the 'obj' for better chainability:
 	TODO: do we do the opposite function (while false?)
 		//user could do: while(obj,negate(iterator))
-	TODO: test returning nothing (make sure that doesn't end loop)... maybe do === false
 */
 var till = _.till = _.until = function(obj, iterator, context, pass) {
 	if (obj == null) return pass || obj;

@@ -1359,7 +1359,8 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   };
 
   // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
-  each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
+  // ... well not isFunction, isString, isNumber we optimized those.
+  each(['Arguments', 'Date', 'RegExp'], function(name) {
     _['is' + name] = function(obj) {
       return toString.call(obj) == '[object ' + name + ']';
     };
@@ -1374,11 +1375,30 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
   }
 
   // Optimize `isFunction` if appropriate.
-  if (typeof (/./) !== 'function') {
+  /*if (typeof (/./) !== 'function') {
     _.isFunction = function(obj) {
       return typeof obj === 'function';
     };
-  }
+  }*/
+
+  // Is a given value a function?  Optimized!
+  _.isFunction = function(obj) {
+    return obj instanceof Function  //blaringly fast, so check first..
+		|| typeof obj == 'function';  //works in another window, way faster than toString.call(obj)
+  };
+
+  // Is a given value a string?
+  _.isString = function(obj) {
+    //return toString.call(obj) == '[object String]';
+    return  typeof obj == 'string' || //blaringly fast
+		//obj instanceof String || //maybe skip this... less checks
+		toString.call(obj) == '[object String]';
+  };
+
+  // Is a given value a number?
+  _.isNumber = function(obj) {
+    return typeof obj == 'number' || toString.call(obj) == '[object Number]';
+  };
 
   // Is a given object a finite number?
   _.isFinite = function(obj) {

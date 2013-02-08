@@ -758,6 +758,21 @@ var till = _.till = _.until = function(obj, iterator, context, pass) {
     return shuffled;
   };
 
+  // A version of _.shuffle that modifies original array
+  // - NOTE: obviously destructive
+  // - uses less memmory & fast (modified Fisher-Yates)
+  // TODO: test on sparse arrays and objects:
+  _.shuffleInPlace = function(obj){
+	var index = obj.length,n,x;
+	while(index-->0){
+		n = _.random(index);
+		x = obj[n];
+		obj[n] = obj[index];
+		obj[index] = x;
+	}
+	return arr;
+  }
+
   // An internal function to generate lookup iterators.
   var lookupIterator = function(value) {
     return _.isFunction(value) ? value : function(obj){ return obj[value]; };
